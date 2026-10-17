@@ -1,0 +1,52 @@
+services:
+  server:
+    build:
+      context: .
+      target: runtime
+    image: lqms:v1
+    container_name: lqms-server
+
+    environment: 
+      PORT: ${PORT:-4000}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://127.0.0.1:3000}
+      NODE_ENV: production
+    ports:
+      - ${PORT:-4000}:${PORT:-4000}
+    
+    depends_on:
+      database:
+        condition: service_healthy
+
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 10s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10M"
+        max-file: "3"
+    
+  database: 
+    image: postgres:18-alpine
+    container_name: lqms-database
+
+    environment:
+      POSTGRES_USER: lqms
+      POSTGRES_PASSWORD: lqms
+      POSTGRES_DB: lqms
+    ports:
+      - 127.0.0.1:${DB_PORT:-5432}:5432
+      
+    restart: unless-stopped
+    stop_grace_period: 10s
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\" "]
+
+    volumes:
+      - lqmsdata:/var/lib/postgresql
+
+volumes:
+  lqmsdata:

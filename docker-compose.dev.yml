@@ -1,0 +1,18 @@
+services:
+  server:
+    build:
+      target: dev
+    image: lqms:dev-v1
+
+    env_file:
+      - path: .env
+        required: true
+
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+
+    volumes:
+      - ./src:/app/src
+
+    restart: "no"
