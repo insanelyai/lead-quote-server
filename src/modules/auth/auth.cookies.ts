@@ -46,3 +46,8 @@ export function clearAuthCookies(res: Response) {
   res.clearCookie(COOKIE.access, base);
   res.clearCookie(COOKIE.refresh, { ...base, path: REFRESH_PATH });
 }
+
+export function clearTokenCookies(res: Response) {
+  res.clearCookie(COOKIE.access, base);
+  res.clearCookie(COOKIE.refresh, { ...base, path: REFRESH_PATH });
+}

@@ -24,7 +24,7 @@ export type User = {
   role: "USER" | "ADMIN";
 };
 
-export type UserWithSecrets = User & { password: string; session_id: string };
+export type UserWithSecrets = User & { password: string; session_id: string | null };
 
 export const AuthRepository = {
   createAnonymousSession: async (

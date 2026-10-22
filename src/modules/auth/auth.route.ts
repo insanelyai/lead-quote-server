@@ -19,5 +19,6 @@ router.post(
   authLimiter({ skipSuccessfulRequests: true }),
   AuthController.login,
 );
+router.post("/logout", AuthController.logout);
 
 export { router as AuthRouter };

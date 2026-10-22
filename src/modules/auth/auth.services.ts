@@ -94,7 +94,7 @@ export const AuthServices = {
       });
 
       await AuthRepository.updateUserSession(db, user.id, sessionId);
-      await AuthRepository.deleteSession(db, user.session_id);
+      if(user.session_id) await AuthRepository.deleteSession(db, user.session_id);
       await AuthRepository.deleteSession(db, tempSessionId);
 
       return { sessionId };
@@ -108,5 +108,21 @@ export const AuthServices = {
       sessionToken: generateSessionToken(sessionId, env.session_ttl_ms),
     };
   },
-  logout: async ({ sessionId }: LogoutInput) => {},
+  logout: async ({
+    sessionId,
+  }: LogoutInput): Promise<{ csrfToken: string; sessionToken: string }> => {
+    const csrfToken = generateCSRF();
+    const newSessionId = await withTransaction(async (db) => {
+      await AuthRepository.deleteSession(db, sessionId);
+      return AuthRepository.createAnonymousSession(db, {
+        csrfToken,
+        expiry: new Date(Date.now() + ANON_SESSION_TTL_MS),
+      });
+    });
+
+    return {
+      csrfToken,
+      sessionToken: generateSessionToken(newSessionId, ANON_SESSION_TTL_MS),
+    };
+  },
 };

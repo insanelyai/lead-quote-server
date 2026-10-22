@@ -4,7 +4,11 @@ import { ANON_SESSION_TTL_MS } from "../../config/constants.js";
 import { AuthServices } from "./auth.services.js";
 import { EmailTakenError, InvalidCredentialsError } from "./auth.errors.js";
 import { loginSchema, registerSchema } from "./auth.schema.js";
-import { COOKIE, setAuthCookies, setSessionCookie } from "./auth.cookies.js";
+import {
+  clearTokenCookies,
+  setAuthCookies,
+  setSessionCookie,
+} from "./auth.cookies.js";
 
 const AuthController = {
   getCsrfToken: async (_req: Request, res: Response, next: NextFunction) => {
@@ -84,17 +88,16 @@ const AuthController = {
       next(error);
     }
   },
-  logout: async (req: Request, res: Response, next: NextFunction) => {
+  logout: async (_req: Request, res: Response, next: NextFunction) => {
     try {
-      res.locals.sessionId = null;
-      const sessionId = req.cookies?.[COOKIE.session];
-
-      const result = AuthServices.logout({
-        sessionId: sessionId,
+      const { csrfToken, sessionToken } = await AuthServices.logout({
+        sessionId: res.locals.sessionId,
       });
 
-      
-
+      clearTokenCookies(res);
+      setSessionCookie(res, sessionToken, ANON_SESSION_TTL_MS);
+      res.set("Cache-Control", "no-store");
+      res.status(200).json({ csrf_token: csrfToken });
     } catch (error) {
       next(error);
     }
