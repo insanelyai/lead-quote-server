@@ -51,3 +51,15 @@ export function clearTokenCookies(res: Response) {
   res.clearCookie(COOKIE.access, base);
   res.clearCookie(COOKIE.refresh, { ...base, path: REFRESH_PATH });
 }
+
+export function setRefreshedCookies(
+  res: Response,
+  t: { accessToken: string; refreshToken: string; expiry: Date },
+) {
+  res.cookie(COOKIE.access, t.accessToken, { ...base, maxAge: ACCESS_TTL_MS });
+  res.cookie(COOKIE.refresh, t.refreshToken, {
+    ...base,
+    path: REFRESH_PATH,
+    maxAge: t.expiry.getTime() - Date.now(),
+  });
+}

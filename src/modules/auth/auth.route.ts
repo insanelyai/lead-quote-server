@@ -20,5 +20,6 @@ router.post(
   AuthController.login,
 );
 router.post("/logout", AuthController.logout);
+router.post("/refresh", AuthController.refresh);
 
 export { router as AuthRouter };

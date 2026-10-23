@@ -9,7 +9,11 @@ import { AuthRepository } from "./auth.repository.js";
 import { hashToken } from "../../utils/hash-token.js";
 import { generateAccessToken } from "../../utils/generate-access-token.js";
 import { generateSessionToken } from "../../utils/generate-session-token.js";
-import { InvalidCredentialsError } from "./auth.errors.js";
+import {
+  InvalidCredentialsError,
+  InvalidRefreshTokenError,
+  InvalidSessionError,
+} from "./auth.errors.js";
 
 const DUMMY_HASH = bcrypt.hashSync("not-a-real-passord", 12);
 
@@ -94,7 +98,8 @@ export const AuthServices = {
       });
 
       await AuthRepository.updateUserSession(db, user.id, sessionId);
-      if(user.session_id) await AuthRepository.deleteSession(db, user.session_id);
+      if (user.session_id)
+        await AuthRepository.deleteSession(db, user.session_id);
       await AuthRepository.deleteSession(db, tempSessionId);
 
       return { sessionId };
@@ -124,5 +129,32 @@ export const AuthServices = {
       csrfToken,
       sessionToken: generateSessionToken(newSessionId, ANON_SESSION_TTL_MS),
     };
+  },
+  refresh: async ({
+    sessionId,
+    refreshToken,
+  }: {
+    sessionId: string;
+    refreshToken: string;
+  }) => {
+    const newRefreshToken = randomBytes(32).toString("base64url");
+    const row = await AuthRepository.rotateRefreshToken(pool, {
+      sessionId,
+      oldHash: hashToken(refreshToken),
+      newHash: hashToken(newRefreshToken),
+    });
+
+    if (!row) throw new InvalidRefreshTokenError();
+
+    return {
+      accessToken: generateAccessToken(row.id, row.role),
+      refreshToken: newRefreshToken,
+      expiry: row.expiry,
+    };
+  },
+  session: async (sessionId: string) => {
+    const session = await AuthRepository.findSessionWithUser(pool, sessionId);
+    if (!session) throw new InvalidSessionError();
+    return session;
   },
 };

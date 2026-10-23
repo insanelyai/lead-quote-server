@@ -24,7 +24,10 @@ export type User = {
   role: "USER" | "ADMIN";
 };
 
-export type UserWithSecrets = User & { password: string; session_id: string | null };
+export type UserWithSecrets = User & {
+  password: string;
+  session_id: string | null;
+};
 
 export const AuthRepository = {
   createAnonymousSession: async (
@@ -113,5 +116,40 @@ export const AuthRepository = {
       userId,
     ]);
   },
-  
+  rotateRefreshToken: async (
+    db: Queryable,
+    payload: { sessionId: string; oldHash: string; newHash: string },
+  ): Promise<(User & { expiry: Date }) | null> => {
+    const result = await db.query(
+      `UPDATE session s 
+      SET refresh_token = $3
+      FROM users u
+      WHERE u.session_id = s.id
+      AND s.id = $1
+      AND s.refresh_token= $2
+      AND s.expiry > now()
+      RETURNING u.id, u.email, u.role, s.expiry
+      `,
+      [payload.sessionId, payload.oldHash, payload.newHash],
+    );
+    return result.rows[0] ?? null;
+  },
+  findSessionWithUser: async (db: Queryable, sessionId: string) => {
+    const { rows } = await db.query(
+      `SELECT s.csrf_token, u.id, u.emial, u.role
+      FROM session s
+      LEFT JOIN users u ON u.session_id = s.id
+      WHERE s.id = $1 AND s.expiry() > now()
+      `,
+      [sessionId],
+    );
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      csrfToken: row.csrf_token as string,
+      user: row.id
+        ? ({ id: row.id, email: row.email, role: row.role } as User)
+        : null,
+    };
+  },
 };

@@ -11,3 +11,17 @@ export class InvalidCredentialsError extends Error {
     this.name = "InvalidCredentialsError";
   }
 }
+
+export class InvalidRefreshTokenError extends Error {
+  constructor() {
+    super("Invalid refresh token");
+    this.name = "InvalidRefreshTokenError";
+  }
+}
+
+export class InvalidSessionError extends Error {
+  constructor() {
+    super("Invalid session token");
+    this.name = "InvalidSessionTokenError";
+  }
+}
