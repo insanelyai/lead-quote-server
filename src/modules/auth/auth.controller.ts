@@ -6,6 +6,7 @@ import {
   EmailTakenError,
   InvalidCredentialsError,
   InvalidRefreshTokenError,
+  InvalidSessionError,
 } from "./auth.errors.js";
 import { loginSchema, registerSchema } from "./auth.schema.js";
 import {
@@ -15,6 +16,8 @@ import {
   setRefreshedCookies,
   setSessionCookie,
 } from "./auth.cookies.js";
+import { verifySessionToken } from "../../utils/verify-session-token.js";
+import jwt from "jsonwebtoken";
 
 const AuthController = {
   getCsrfToken: async (_req: Request, res: Response, next: NextFunction) => {
@@ -124,7 +127,7 @@ const AuthController = {
     } catch (error) {
       if (error instanceof InvalidRefreshTokenError) {
         return res.status(401).json({
-          stauts: "failed",
+          status: "failed",
           code: "INVALID_REFRESH_TOKEN",
           message: error.message,
         });
@@ -134,8 +137,26 @@ const AuthController = {
   },
   session: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      
+      const token = req.cookies?.[COOKIE.session];
+      if (!token) throw new InvalidSessionError();
+
+      const { csrfToken, user } = await AuthServices.session(
+        verifySessionToken(token),
+      );
+
+      res.set("Cache-Control", "no-store");
+      res.status(200).json({ csrf_token: csrfToken, user });
     } catch (error) {
+      if (
+        error instanceof InvalidSessionError ||
+        error instanceof jwt.JsonWebTokenError
+      ) {
+        return res.status(401).json({
+          status: "failed",
+          code: "SESSION_INVALID",
+          message: "Session is missing, expired or invalid",
+        });
+      }
       next(error);
     }
   },

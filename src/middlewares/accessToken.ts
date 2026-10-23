@@ -23,18 +23,18 @@ export async function requireAuth(
 
     const payload = jwt.verify(accessCookie, env.access_secret, {
       algorithms: ["HS256"],
-    }) as { id: string; role: "USER" | "ADMIN" };
+    });
 
     if (
       typeof payload === "string" ||
       typeof payload.id !== "string" ||
       (payload.role !== "USER" && payload.role !== "ADMIN")
     ) {
-      return res.status(401).json({
-        status: "failed",
-        code: "ACCESS_TOKEN_INVALID",
-        message: "The access token is not valid",
-      });
+      return unauthenticated(
+        res,
+        "ACCESS_TOKEN_INVALID",
+        "The access token is not valid",
+      );
     }
     res.locals.user = { id: payload.id, role: payload.role };
   } catch (error) {
@@ -42,17 +42,17 @@ export async function requireAuth(
       return unauthenticated(
         res,
         "ACCESS_TOKEN_EXPIRED",
-        "The access token is not valid",
+        "The access token is expired",
       );
     }
     if (error instanceof JsonWebTokenError) {
       return unauthenticated(
         res,
         "ACCESS_TOKEN_INVALID",
-        "this access token is not valid",
+        "The access token is not valid",
       );
     }
-    next(error);
+    return next(error);
   }
   next();
 }

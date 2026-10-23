@@ -22,6 +22,6 @@ export class InvalidRefreshTokenError extends Error {
 export class InvalidSessionError extends Error {
   constructor() {
     super("Invalid session token");
-    this.name = "InvalidSessionTokenError";
+    this.name = "InvalidSessionError";
   }
 }

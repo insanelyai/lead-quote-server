@@ -136,10 +136,10 @@ export const AuthRepository = {
   },
   findSessionWithUser: async (db: Queryable, sessionId: string) => {
     const { rows } = await db.query(
-      `SELECT s.csrf_token, u.id, u.emial, u.role
+      `SELECT s.csrf_token, u.id, u.email, u.role
       FROM session s
       LEFT JOIN users u ON u.session_id = s.id
-      WHERE s.id = $1 AND s.expiry() > now()
+      WHERE s.id = $1 AND s.expiry > now()
       `,
       [sessionId],
     );
