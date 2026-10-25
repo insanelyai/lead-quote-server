@@ -30,6 +30,7 @@ const csrfLimiter = rateLimit({
   limit: 30,
   standardHeaders: "draft-8",
   legacyHeaders: false,
+  skip: () => env.nodeEnv === "test",
 });
 
 app.get("/auth/csrf", csrfLimiter, AuthController.getCsrfToken);

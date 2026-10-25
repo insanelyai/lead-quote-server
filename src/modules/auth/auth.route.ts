@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { Options, rateLimit } from "express-rate-limit";
 import { AuthController } from "./auth.controller.js";
+import { env } from "../../config/env.js";
 
 const router = Router();
 
@@ -11,6 +12,7 @@ const authLimiter = (options: Partial<Options> = {}) =>
     standardHeaders: "draft-8",
     legacyHeaders: false,
     ...options,
+    skip: () => env.nodeEnv === "test",
   });
 
 router.post("/register", authLimiter(), AuthController.register);

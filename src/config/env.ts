@@ -20,10 +20,20 @@ export const env = {
   csrf_secret: required("CSRF_SECRET"),
   access_secret: required("ACCESS_SECRET"),
   session_ttl_ms: Number(process.env.SESSION_TTL_MS ?? 7 * 24 * 60 * 60 * 1000),
+  bcrypt_cost: Number(process.env.BCRYPT_COST ?? 12),
 };
 
 if (!Number.isFinite(env.session_ttl_ms) || env.session_ttl_ms <= 0) {
   throw new Error("SESSION_TTL_MS must be a positive number");
 }
 
+if (!Number.isInteger(env.bcrypt_cost) || env.bcrypt_cost < 4) {
+  throw new Error("BCRYPT_COST must be an integer of at least 4");
+}
+
 export const isProd = env.nodeEnv === "production";
+
+// Tests lower the cost for speed; real passwords must never be hashed that cheaply
+if (isProd && env.bcrypt_cost < 10) {
+  throw new Error("BCRYPT_COST must be at least 10 in production");
+}

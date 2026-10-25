@@ -15,7 +15,7 @@ import {
   InvalidSessionError,
 } from "./auth.errors.js";
 
-const DUMMY_HASH = bcrypt.hashSync("not-a-real-passord", 12);
+const DUMMY_HASH = bcrypt.hashSync("not-a-real-passord", env.bcrypt_cost);
 
 type RegisterInput = {
   email: string;
@@ -47,7 +47,7 @@ export const AuthServices = {
     };
   },
   register: async ({ email, password, tempSessionId }: RegisterInput) => {
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(password, env.bcrypt_cost);
     const csrfToken = generateCSRF();
     const refreshToken = randomBytes(32).toString("base64url");
     const expiry = new Date(Date.now() + env.session_ttl_ms);
