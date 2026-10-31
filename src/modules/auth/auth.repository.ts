@@ -13,6 +13,7 @@ type CreateSessionPayload = {
 };
 
 type CreateUserPayload = {
+  name: string;
   email: string;
   passwordHash: string;
   sessionId: string;
@@ -22,6 +23,7 @@ export type User = {
   id: string;
   email: string;
   role: "USER" | "ADMIN";
+  company_id: string | null;
 };
 
 export type UserWithSecrets = User & {
@@ -67,6 +69,7 @@ export const AuthRepository = {
     if (
       !payload ||
       !payload.email ||
+      !payload.name ||
       !payload.passwordHash ||
       !payload.sessionId
     ) {
@@ -75,8 +78,14 @@ export const AuthRepository = {
 
     try {
       const result = await db.query(
-        "INSERT INTO users(email, password, session_id, role) VALUES($1, $2, $3, $4) RETURNING id, email, role",
-        [payload.email, payload.passwordHash, payload.sessionId, "USER"],
+        "INSERT INTO users(name, email, password, session_id, role) VALUES($1, $2, $3, $4, $5) RETURNING id, email, role, company_id",
+        [
+          payload.name,
+          payload.email,
+          payload.passwordHash,
+          payload.sessionId,
+          "USER",
+        ],
       );
       return result.rows[0];
     } catch (error) {
@@ -97,7 +106,7 @@ export const AuthRepository = {
     if (!email) throw new Error("Failed to get user. No email provided");
 
     const result = await db.query(
-      "SELECT id, email, password, role, session_id FROM users WHERE email = $1",
+      "SELECT id, email, password, role, session_id, company_id FROM users WHERE email = $1",
       [email],
     );
 
@@ -128,7 +137,7 @@ export const AuthRepository = {
       AND s.id = $1
       AND s.refresh_token= $2
       AND s.expiry > now()
-      RETURNING u.id, u.email, u.role, s.expiry
+      RETURNING u.id, u.email, u.role, u.company_id, s.expiry
       `,
       [payload.sessionId, payload.oldHash, payload.newHash],
     );
@@ -136,7 +145,7 @@ export const AuthRepository = {
   },
   findSessionWithUser: async (db: Queryable, sessionId: string) => {
     const { rows } = await db.query(
-      `SELECT s.csrf_token, u.id, u.email, u.role
+      `SELECT s.csrf_token, u.id, u.email, u.role, u.company_id
       FROM session s
       LEFT JOIN users u ON u.session_id = s.id
       WHERE s.id = $1 AND s.expiry > now()
@@ -148,7 +157,12 @@ export const AuthRepository = {
     return {
       csrfToken: row.csrf_token as string,
       user: row.id
-        ? ({ id: row.id, email: row.email, role: row.role } as User)
+        ? ({
+            id: row.id,
+            email: row.email,
+            role: row.role,
+            company_id: row.company_id,
+          } as User)
         : null,
     };
   },

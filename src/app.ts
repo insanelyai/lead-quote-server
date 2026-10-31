@@ -10,6 +10,7 @@ import { rateLimit } from "express-rate-limit";
 import { AuthController } from "./modules/auth/auth.controller.js";
 import { AuthRouter } from "./modules/auth/auth.route.js";
 import { verifyCsrf } from "./middlewares/csrf.js";
+import { CompanyRouter } from "./modules/company/company.route.js";
 
 export const app = express();
 
@@ -36,6 +37,7 @@ const csrfLimiter = rateLimit({
 app.get("/auth/csrf", csrfLimiter, AuthController.getCsrfToken);
 app.use(verifyCsrf);
 app.use("/auth", AuthRouter);
+app.use("/company", CompanyRouter);
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });

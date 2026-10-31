@@ -12,7 +12,11 @@ describe("POST /auth/login", () => {
     const res = await agent
       .post("/auth/register")
       .set("X-CSRF-Token", csrf)
-      .send({ email: "test@example.com", password: "password123" });
+      .send({
+        email: "test@example.com",
+        password: "password123",
+        name: "Test User",
+      });
 
     expect(res.status).toBe(201);
     expect(res.body.user.email).toBe("test@example.com");
@@ -62,7 +66,11 @@ describe("POST /auth/login", () => {
     const res = await agent
       .post("/auth/register")
       .set("X-CSRF-Token", csrf)
-      .send({ email: "test@example.com", password: "password123" });
+      .send({
+        email: "test@example.com",
+        password: "password123",
+        name: "Test User",
+      });
 
     expect(res.status).toBe(201);
     expect(res.body.user.email).toBe("test@example.com");

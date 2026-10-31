@@ -63,3 +63,7 @@ export function setRefreshedCookies(
     maxAge: t.expiry.getTime() - Date.now(),
   });
 }
+
+export function setAccessCookie(res: Response, t: { accessToken: string }) {
+  res.cookie(COOKIE.access, t.accessToken, { ...base, maxAge: ACCESS_TTL_MS });
+}

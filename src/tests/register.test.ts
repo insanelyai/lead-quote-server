@@ -14,7 +14,11 @@ describe("POST /auth/register", () => {
     const res = await agent
       .post("/auth/register")
       .set("X-CSRF-Token", csrf)
-      .send({ email: "Test@Example.com", password: "password123" });
+      .send({
+        email: "Test@Example.com",
+        password: "password123",
+        name: "Test User",
+      });
 
     expect(res.status).toBe(201);
     expect(res.body.user.email).toBe("test@example.com");
@@ -34,7 +38,11 @@ describe("POST /auth/register", () => {
     await agent
       .post("/auth/register")
       .set("X-CSRF-Token", csrf)
-      .send({ email: "Test@Example.com", password: "password123" });
+      .send({
+        email: "Test@Example.com",
+        password: "password123",
+        name: "Test User",
+      });
 
     const users = await pool.query("SELECT password FROM users");
     expect(users.rows).toHaveLength(1);
@@ -49,13 +57,21 @@ describe("POST /auth/register", () => {
     await first.agent
       .post("/auth/register")
       .set("X-CSRF-Token", first.csrf)
-      .send({ email: "test@example.com", password: "password123" });
+      .send({
+        email: "test@example.com",
+        password: "password123",
+        name: "Test User",
+      });
 
     const second = await newClient();
     const res = await second.agent
       .post("/auth/register")
       .set("X-CSRF-Token", second.csrf)
-      .send({ email: "Test@example.com", password: "password123" });
+      .send({
+        email: "Test@example.com",
+        password: "password123",
+        name: "Test User",
+      });
 
     expect(res.status).toBe(409);
     expect(res.body.code).toBe("EMAIL_TAKEN");
@@ -66,7 +82,11 @@ describe("POST /auth/register", () => {
     const res = await agent
       .post("/auth/register")
       .set("X-CSRF-Token", csrf)
-      .send({ email: "test@example.com", password: "short" });
+      .send({
+        email: "test@example.com",
+        password: "short",
+        name: "Test User",
+      });
 
     expect(res.status).toBe(400);
     expect(res.body.code).toBe("BAD_REQUEST");

@@ -20,6 +20,7 @@ const DUMMY_HASH = bcrypt.hashSync("not-a-real-passord", env.bcrypt_cost);
 type RegisterInput = {
   email: string;
   password: string;
+  name: string;
   tempSessionId: string;
 };
 
@@ -46,7 +47,7 @@ export const AuthServices = {
       sessionToken: generateSessionToken(sessionId, ANON_SESSION_TTL_MS),
     };
   },
-  register: async ({ email, password, tempSessionId }: RegisterInput) => {
+  register: async ({ email, password, name, tempSessionId }: RegisterInput) => {
     const hashedPassword = await bcrypt.hash(password, env.bcrypt_cost);
     const csrfToken = generateCSRF();
     const refreshToken = randomBytes(32).toString("base64url");
@@ -60,6 +61,7 @@ export const AuthServices = {
       });
 
       const user = await AuthRepository.createUser(db, {
+        name,
         email,
         passwordHash: hashedPassword,
         sessionId,
@@ -71,10 +73,15 @@ export const AuthServices = {
     });
 
     return {
-      user,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        companyId: user.company_id,
+      },
       csrfToken,
       refreshToken,
-      accessToken: generateAccessToken(user.id, user.role),
+      accessToken: generateAccessToken(user.id, user.role, user.company_id),
       sessionToken: generateSessionToken(sessionId, env.session_ttl_ms),
     };
   },
@@ -106,10 +113,15 @@ export const AuthServices = {
     });
 
     return {
-      user: { id: user.id, email: user.email, role: user.role },
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        companyId: user.company_id,
+      },
       csrfToken,
       refreshToken,
-      accessToken: generateAccessToken(user.id, user.role),
+      accessToken: generateAccessToken(user.id, user.role, user.company_id),
       sessionToken: generateSessionToken(sessionId, env.session_ttl_ms),
     };
   },
@@ -147,7 +159,7 @@ export const AuthServices = {
     if (!row) throw new InvalidRefreshTokenError();
 
     return {
-      accessToken: generateAccessToken(row.id, row.role),
+      accessToken: generateAccessToken(row.id, row.role, row.company_id),
       refreshToken: newRefreshToken,
       expiry: row.expiry,
     };
@@ -155,6 +167,18 @@ export const AuthServices = {
   session: async (sessionId: string) => {
     const session = await AuthRepository.findSessionWithUser(pool, sessionId);
     if (!session) throw new InvalidSessionError();
-    return session;
+
+    const { user } = session;
+    return {
+      csrfToken: session.csrfToken,
+      user: user
+        ? {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            companyId: user.company_id,
+          }
+        : null,
+    };
   },
 };
