@@ -1,6 +1,6 @@
 # Lead Quote Management: Progress
 
-> Last updated 2026-11-01 · Legend: ✅ done · 🔨 in progress · ⬜ pending
+> Last updated 2026-11-01 · Legend: ✅ done · 🔨 in progress · ⬜ pending · ⏸ on hold
 >
 > This page covers the whole application. Each module keeps its own details in [`modules/`](modules/).
 
@@ -9,8 +9,8 @@
 | Module | Status | Note |
 |---|---|---|
 | Auth | ✅ | Complete and tested. Details: [modules/auth.md](modules/auth.md) |
-| Leads | ⬜ | Tables exist, no endpoints. Needs onboarding and invitations first |
-| Quotes | ⬜ | Tables exist, no endpoints. After leads |
+| Leads | ⏸ | **On hold** (decided 2026-11-01). Tables exist, no endpoints |
+| Quotes | ⏸ | **On hold** with leads. Tables exist, no endpoints |
 | Companies | 🔨 | Onboarding works, no tests yet. Invitations not started. Details: [modules/company.md](modules/company.md) |
 | Frontend | ⬜ | Not started |
 | Deployment | ⬜ | See *Before production* below |
@@ -20,8 +20,8 @@
 ## Up next
 
 - [x] **Tenancy migration** (migrations 010, 011): `users.company_id`, `users.name` and the `invitations` table, applied to dev and test
-- [ ] **Finish tenancy**: `requireAuth` reads `companyId`, `ONBOARDING_REQUIRED` and admin guards, onboarding tests, invitations. Done so far: migration 012, register without a company, onboarding, `companyId` in the token. See [modules/company.md](modules/company.md) and [modules/auth.md](modules/auth.md)
-- [ ] **Leads endpoints**: create, list, get, update, scoped by `res.locals.user.companyId`, with tests
+- [ ] **Finish tenancy**: invitations, and the missing-user behaviour of the guards. Done and tested: migration 012, register without a company, onboarding, `companyId` in the token, `requireAuth` reading it, the `ONBOARDING_REQUIRED` and admin guards. See [modules/company.md](modules/company.md) and [modules/auth.md](modules/auth.md)
+- ⏸ **Leads endpoints** (on hold, don't start until told): create, list, get, update, scoped by `res.locals.user.companyId`, with tests
 - [ ] **Choose the frontend framework** (open question 1)
 
 ---
@@ -68,6 +68,13 @@
 - Required env vars: `DB_USER`, `DB_HOST`, `DB_NAME`, `CSRF_SECRET`, `ACCESS_SECRET`. The server won't start without them. `.env.example` lists all of them.
 - `pnpm migrate up` reads `DATABASE_URL` (or `PG*` variables). `.env` has neither, so set one or the command fails.
 - `tsconfig` includes `src/tests`, so `pnpm build` emits the tests into `dist/`.
+
+</details>
+
+<details>
+<summary>Endpoint checklist</summary>
+
+Seven questions to answer for every endpoint: [endpoint-checklist.md](endpoint-checklist.md).
 
 </details>
 

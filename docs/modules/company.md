@@ -1,6 +1,6 @@
 # Company: Progress
 
-> Last updated 2026-11-01 · Legend: ✅ done · 🔨 in progress · ⬜ pending
+> Last updated 2026-11-01 · Legend: ✅ done · 🔨 in progress · ⬜ pending · ⏸ on hold
 >
 > Part of [the application progress](../progress.md). Token and session details are in [auth.md](auth.md).
 
@@ -8,24 +8,22 @@
 
 | Area | Status | Note |
 |---|---|---|
-| Onboarding | 🔨 | `POST /company/onboarding` works end to end. No automated tests yet |
+| Onboarding | ✅ | `POST /company/onboarding`, 5 tests |
 | Invitations | ⬜ | The `invitations` table exists (migration 010). No code |
-| Guards | ⬜ | `ONBOARDING_REQUIRED` and an admin-role check do not exist |
+| Guards | ✅ | `onboardingRequired` and `requiredAdmin`, tested alone and as a chain with `requireAuth`. Not mounted on a route yet. A missing `res.locals.user` is decided but not built |
 
 ---
 
 ## Up next
 
-- [ ] **Onboarding tests**: the cases are yours to list. `resetDb` must also clear `companies` (`TRUNCATE users, session, companies CASCADE`)
-- [ ] **`requireAuth` reads `companyId`** and an `ONBOARDING_REQUIRED` guard (see [auth.md](auth.md))
-- [ ] **Admin-role check** for routes only an `ADMIN` may use (inviting)
-- [ ] **Invitations**: admin creates a link, invitee sets a password and joins that company
+- [ ] **Invitations**: admin creates a link, invitee sets a password and joins that company. The guards get mounted here, in the order `requireAuth`, `onboardingRequired`, `requiredAdmin`
+- [ ] **Guards: missing `res.locals.user`**: check the user's session, then answer `401` (no session) or `500` (valid session). Build it with the invite route
 
 ---
 
 ## Open questions
 
-1. **Can an admin invite as `ADMIN`,** or only as `USER`? The `role` column defaults to `USER`.
+1. **Invitations:** email now or link first? Log the invitee in after accepting? Is reject in scope? (Role is decided: `USER` or `ADMIN`, chosen by the inviting admin.) Details in the temporary checklist.
 
 ---
 

@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { env } from "../config/env.js";
-import { requireAuth } from "../middlewares/accessToken.js";
+import { requireAuth } from "../middlewares/requiredAuth.js";
 import { COOKIE } from "../modules/auth/auth.cookies.js";
 
 // requireAuth is not mounted on a real route yet, so test it on a tiny app
@@ -51,18 +51,26 @@ describe("requireAuth", () => {
     },
   );
 
-  it("should attach the user to res.locals when the token is valid", async () => {
-    const token = jwt.sign({ id: "user-1", role: "ADMIN" }, env.access_secret, {
-      expiresIn: "15m",
-    });
+  it.each([
+    ["null", null],
+    ["a UUID", "c9ce9724-106f-4740-9591-5267804b8550"],
+  ])(
+    "should attach the user to res.locals when the token is valid and companyId is %s",
+    async (_description, companyId) => {
+      const token = jwt.sign(
+        { id: "user-1", role: "ADMIN", companyId },
+        env.access_secret,
+        { expiresIn: "15m" },
+      );
 
-    const res = await request(testApp)
-      .get("/protected")
-      .set("Cookie", `${COOKIE.access}=${token}`);
+      const res = await request(testApp)
+        .get("/protected")
+        .set("Cookie", `${COOKIE.access}=${token}`);
 
-    expect(res.status).toBe(200);
-    expect(res.body.user).toEqual({ id: "user-1", role: "ADMIN" });
-  });
+      expect(res.status).toBe(200);
+      expect(res.body.user).toEqual({ id: "user-1", role: "ADMIN", companyId });
+    },
+  );
 
   it("should return 401 ACCESS_TOKEN_EXPIRED when the token is expired", async () => {
     const token = jwt.sign(
@@ -84,9 +92,13 @@ describe("requireAuth", () => {
 
   it("should return 401 ACCESS_TOKEN_INVALID when the token is not valid", async () => {
     // a well-formed token signed with a different secret
-    const token = jwt.sign({ id: "user-1", role: "USER" }, "some-other-secret", {
-      expiresIn: "15m",
-    });
+    const token = jwt.sign(
+      { id: "user-1", role: "USER" },
+      "some-other-secret",
+      {
+        expiresIn: "15m",
+      },
+    );
 
     const res = await request(testApp)
       .get("/protected")

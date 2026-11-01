@@ -15,7 +15,7 @@ import {
   InvalidSessionError,
 } from "./auth.errors.js";
 
-const DUMMY_HASH = bcrypt.hashSync("not-a-real-passord", env.bcrypt_cost);
+const DUMMY_HASH = bcrypt.hashSync("not-a-real-password", env.bcrypt_cost);
 
 type RegisterInput = {
   email: string;

@@ -5,7 +5,7 @@ import { pool } from "../lib/database.js";
 // Every test starts from empty tables. CASCADE also clears tables that
 // reference users (leads, quotes, ...), which is fine in the test database.
 export async function resetDb() {
-  await pool.query("TRUNCATE users, session CASCADE");
+  await pool.query("TRUNCATE users, session, companies CASCADE");
 }
 
 // Acts like a fresh browser tab: it keeps cookies between requests and has

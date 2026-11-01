@@ -32,7 +32,7 @@ describe("POST /auth/register", () => {
     expect(refresh).toContain("Path=/auth/refresh");
   });
 
-  it("stores a hashed password and replaces the anonymous sessoin", async () => {
+  it("stores a hashed password and replaces the anonymous session", async () => {
     const { agent, csrf } = await newClient();
 
     await agent

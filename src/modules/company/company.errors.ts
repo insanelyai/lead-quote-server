@@ -1,6 +1,6 @@
 export class IncompleteCompanyDetails extends Error {
   constructor() {
-    super("Insuffient details to create a company");
+    super("Insufficient details to create a company");
     this.name = "IncompleteCompanyDetails";
   }
 }

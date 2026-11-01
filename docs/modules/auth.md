@@ -15,7 +15,7 @@
 | Refresh | ✅ | Atomic rotation, session expiry stays fixed |
 | Session bootstrap | ✅ | `GET /auth/session` restores CSRF token + user after a page reload |
 | Access-token middleware | ✅ | `requireAuth` is written and tested, **not mounted on any route yet** |
-| Automated tests | ✅ | 30 tests in 7 files. Rate limits and rollback are not covered |
+| Automated tests | ✅ | 46 tests in 11 files (auth, onboarding and the guards). Rate limits and rollback are not covered |
 | Frontend wrapper | ⬜ | Not started |
 
 ---
@@ -27,8 +27,8 @@
 - [x] **Company onboarding** (`POST /company/onboarding`, tracked in [company.md](company.md)): works end to end, checked by hand. No automated tests yet
 - [ ] **Invitations**: an admin creates a link, the invitee sets a password and joins that company
 - [x] **`companyId` in the access token** (`null` before onboarding): register, login, refresh and onboarding all set it. Register, login and `GET /auth/session` return `companyId` in `user`
-- [ ] **`requireAuth` reads `companyId`** into `res.locals.user.companyId`, plus a guard that returns `403 ONBOARDING_REQUIRED` on company routes (with tests)
-- [ ] **Tests for the token's `companyId`** on login and refresh. Nothing covers them yet, because every test user has no company
+- [x] **`requireAuth` reads `companyId`** into `res.locals.user.companyId`, plus a guard that returns `403 ONBOARDING_REQUIRED` on company routes. Tested
+- [x] **Tests for the token's `companyId`** on login and refresh
 - [ ] **Mount `requireAuth`** on the first protected route
 - [ ] **Check rate limits by hand**: tests skip the limiters. The 11th failed login in 15 min must return `429`.
 - [ ] **Frontend `apiFetch`**: recover from the error codes in the table below
@@ -153,6 +153,6 @@ App-wide items (HTTPS, secrets, `NODE_ENV`, log redaction, ...) are in [the appl
 - ✅ Configurable `BCRYPT_COST` with startup guards
 - ✅ Fixed `withTransaction` missing `await` (would have broken rollback)
 - ✅ Per-route rate limiters for register and login
-- ✅ 30 tests across csrf, register, login, logout, refresh, session and requireAuth
+- ✅ 46 tests across csrf, register, login, logout, refresh, session, requireAuth, onboarding and the guards
 
 </details>

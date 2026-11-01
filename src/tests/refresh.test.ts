@@ -2,6 +2,8 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { cookiesOf, newClient, resetDb } from "./helpers.js";
 import { pool } from "../lib/database.js";
 import { hashToken } from "../utils/hash-token.js";
+import jwt from "jsonwebtoken";
+import { env } from "../config/env.js";
 
 beforeEach(resetDb);
 afterAll(() => pool.end());
@@ -122,5 +124,25 @@ describe("POST /auth/refresh", () => {
       sessionId,
     ]);
     expect(after.rows[0].expiry).toEqual(before.rows[0].expiry);
+  });
+
+  it("should keep the user's companyId in the new access token", async () => {
+    // the user has a company, as if onboarding had happened
+    const company = await pool.query(
+      "INSERT INTO companies(name, email, address) VALUES('Acme', 'contact@acme.com', '1 Main St') RETURNING id",
+    );
+    const companyId = company.rows[0].id;
+    await pool.query("UPDATE users SET company_id = $1", [companyId]);
+
+    const refreshRes = await client.agent
+      .post("/auth/refresh")
+      .set("X-CSRF-Token", csrf);
+    expect(refreshRes.status).toBe(204);
+
+    const access = cookiesOf(refreshRes).find((c) => c.startsWith("a.token="));
+    expect(access).toBeDefined();
+    const token = access!.split(";")[0].split("=")[1];
+
+    expect(jwt.verify(token, env.access_secret)).toMatchObject({ companyId });
   });
 });

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { companyOnboarding } from "./company.schema.js";
+import { companyInvite, companyOnboarding } from "./company.schema.js";
 import z from "zod";
 import { CompanyServices } from "./company.services.js";
 import { setAccessCookie } from "../auth/auth.cookies.js";
@@ -36,6 +36,19 @@ const CompanyController = {
         });
       }
       next(error);
+    }
+  },
+  invite: async (req: Request, res: Response, next: NextFunction) => {
+    const parsedBody = companyInvite.safeParse(req.body);
+
+    if (parsedBody.error) {
+      return res.status(400).json({
+        status: "failed",
+        code: "BAD_REQUEST",
+        message: z.prettifyError(parsedBody.error),
+      });
+
+      
     }
   },
 };
